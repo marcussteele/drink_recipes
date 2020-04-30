@@ -1,7 +1,8 @@
-import argparse
-from scraping.liquor.scrape_liquor import make_soup, get_sub_urls, get_all_cocktails_in_url
+from .liquor.scrape_liquor import make_soup, get_sub_urls, get_all_cocktails_in_url
+from .postgres import create_connection
 
-def main(list_of_sites, cocktail_database):
+def scrape_cocktails(sites, connection, table_name):
+    list_of_sites = sites.split(',')
     for site in list_of_sites:
         if site == 'https://www.liquor.com/':
             website = make_soup(site)
@@ -9,11 +10,9 @@ def main(list_of_sites, cocktail_database):
             cocktails_by = get_sub_urls(cocktail_type)
             cocktails_by.remove('https://www.liquor.com/other-recipes-4779379')
             for url in cocktails_by:
-                get_all_cocktails_in_url(url, cocktail_database)
+                get_all_cocktails_in_url(url, connection, table_name)
                 sub_urls = get_sub_urls(url)
                 for sub_url in sub_urls:
-                    get_all_cocktails_in_url(sub_url, cocktail_database)
+                    get_all_cocktails_in_url(sub_url, connection, table_name)
 
-if __name__ == '__main__':
-    cocktails = {}
-    main(['https://www.liquor.com/'], cocktails)
+    connection.close()
